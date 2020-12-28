@@ -7,6 +7,7 @@ class Http < Formula
   head "https://github.com/thecoshman/http.git"
 
   depends_on "rust" => :build
+  uses_from_macos "openssl"
 
   def install
     system "cargo", "install", *std_cargo_args
