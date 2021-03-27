@@ -9,8 +9,11 @@ class Goplus < Formula
   depends_on "go" => :build
 
   def install
-    system "go", "build", "-ldflags", "-s -w", *std_go_args
-    chmod "+x", bin/"goplus"
+    # ENV["GOPATH"] = buildpath
+    # ENV["GOBIN"] = bin
+    ENV["GO111MODULE"] = "auto"
+
+    system "go", "install", "-v", "./..."
   end
 
   test do
