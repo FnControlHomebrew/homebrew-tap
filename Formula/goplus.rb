@@ -20,7 +20,7 @@ class Goplus < Formula
       a := [1, 3, 5, 7, 11]
       b := [x*x for x <- a, x > 3]
       println(b)
-      
+
       mapData := {"Hi": 1, "Hello": 2, "Go+": 3}
       reverseMap := {v: k for k, v <- mapData}
       println(reverseMap)
