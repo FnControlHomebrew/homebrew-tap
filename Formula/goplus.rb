@@ -9,7 +9,7 @@ class Goplus < Formula
   depends_on "go" => :build
 
   def install
-    ENV["GOPATH"] = buildpath
+    # ENV["GOPATH"] = buildpath
     ENV["GOBIN"] = bin
     ENV["GO111MODULE"] = "auto"
 
