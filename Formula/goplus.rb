@@ -9,7 +9,6 @@ class Goplus < Formula
   depends_on "go" => :build
 
   def install
-    # ENV["GOPATH"] = buildpath
     ENV["GOBIN"] = bin
     ENV["GO111MODULE"] = "auto"
 
@@ -17,6 +16,18 @@ class Goplus < Formula
   end
 
   test do
-    system "true"
+    (testpath/"hello.gop").write <<~EOS
+      a := [1, 3, 5, 7, 11]
+      b := [x*x for x <- a, x > 3]
+      println(b)
+      
+      mapData := {"Hi": 1, "Hello": 2, "Go+": 3}
+      reverseMap := {v: k for k, v <- mapData}
+      println(reverseMap)
+    EOS
+
+    output = shell_output("#{bin}/gop run hello.gop")
+    assert_match "[25 49 121]", output
+    assert_match "map[1:Hi 2:Hello 3:Go+]", output
   end
 end
