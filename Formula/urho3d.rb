@@ -23,8 +23,14 @@ class Urho3d < Formula
   end
 
   def install
-    # ENV.deparallelize
-    system "cmake", "-S", ".", "-B", "build", *std_cmake_args, "-DURHO3D_LIB_TYPE=SHARED"
+    args = std_cmake_args + %w[
+      -DURHO3D_LIB_TYPE=SHARED
+      -DURHO3D_SAMPLES=FALSE
+    ]
+    on_macos do
+      args << "-DURHO3D_PCH=FALSE"
+    end
+    system "cmake", "-S", ".", "-B", "build", *args
     system "cmake", "--build", "build"
     system "cmake", "--install", "build"
   end
