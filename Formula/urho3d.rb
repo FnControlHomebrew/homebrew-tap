@@ -6,17 +6,21 @@ class Urho3d < Formula
   license "MIT"
 
   depends_on "cmake" => :build
-  depends_on "libx11"
-  depends_on "libxcursor"
-  depends_on "libxext"
-  depends_on "libxi"
-  depends_on "libxinerama"
-  depends_on "libxrandr"
-  depends_on "libxrender"
-  depends_on "libxscrnsaver"
-  depends_on "libxxf86vm"
   depends_on "openssl@1.1"
-  depends_on "pulseaudio"
+
+  on_linux do
+    depends_on "libx11"
+    depends_on "libxcursor"
+    depends_on "libxext"
+    depends_on "libxi"
+    depends_on "libxinerama"
+    depends_on "libxrandr"
+    depends_on "libxrender"
+    depends_on "libxscrnsaver"
+    depends_on "libxxf86vm"
+    depends_on "mesa"
+    depends_on "pulseaudio"
+  end
 
   def install
     # ENV.deparallelize
