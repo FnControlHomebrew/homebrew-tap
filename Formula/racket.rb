@@ -13,6 +13,7 @@ class Racket < Formula
   end
 
   depends_on "gettext"
+  depends_on "glib"
   depends_on "libpng"
   depends_on "openssl@1.1"
   depends_on "util-linux"
