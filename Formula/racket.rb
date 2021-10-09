@@ -32,7 +32,7 @@ class Racket < Formula
     # https://github.com/racket/racket/issues/3279
     inreplace [
       "share/pkgs/draw-lib/racket/draw/unsafe/glib.rkt",
-      "src/native-libs/install.rkt"
+      "src/native-libs/install.rkt",
     ], "libintl.9", "libintl.8"
 
     cd "src" do
