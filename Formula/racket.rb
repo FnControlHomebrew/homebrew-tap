@@ -15,6 +15,7 @@ class Racket < Formula
   depends_on "gettext"
   depends_on "libpng"
   depends_on "openssl@1.1"
+  depends_on "util-linux"
 
   uses_from_macos "libffi"
 
@@ -27,6 +28,12 @@ class Racket < Formula
     # configure racket's package tool (raco) to do the Right Thing
     # see: https://docs.racket-lang.org/raco/config-file.html
     inreplace "etc/config.rktd", /\)\)\n$/, ") (default-scope . \"installation\"))\n"
+
+    # https://github.com/racket/racket/issues/3279
+    inreplace [
+      "share/pkgs/draw-lib/racket/draw/unsafe/glib.rkt",
+      "src/native-libs/install.rkt"
+    ], "libintl.9", "libintl.8"
 
     cd "src" do
       args = %W[
