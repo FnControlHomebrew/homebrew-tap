@@ -14,11 +14,10 @@ class Racket < Formula
 
   depends_on "gettext"
   depends_on "glib"
+  depends_on "libffi"
   depends_on "libpng"
   depends_on "openssl@1.1"
   depends_on "util-linux"
-
-  uses_from_macos "libffi"
 
   conflicts_with "minimal-racket", because: "both install `racket` and `raco` binaries"
 
