@@ -12,6 +12,8 @@ class Racket < Formula
     regex(/["'][^"']*?racket[._-]v?(\d+(?:\.\d+)+)-src\.t/i)
   end
 
+  depends_on "gettext"
+  depends_on "libpng"
   depends_on "openssl@1.1"
 
   uses_from_macos "libffi"
