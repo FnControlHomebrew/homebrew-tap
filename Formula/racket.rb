@@ -56,11 +56,9 @@ class Racket < Formula
         --enable-useprefix
       ]
 
-      ENV["LDFLAGS"] = %W[
-        -rpath #{Formula["openssl@1.1"].opt_lib}
-        -rpath #{Formula["util-linux"].opt_lib}
-      ].join " "
-      ENV["LDFLAGS"] = "-Wl,-rpath=#{Formula["openssl@1.1"].opt_lib}" if OS.linux?
+      ENV.append "LDFLAGS", "-Wl,-rpath,#{Formula["libffi"].opt_lib}"
+      ENV.append "LDFLAGS", "-Wl,-rpath,#{Formula["openssl@1.1"].opt_lib}"
+      ENV.append "LDFLAGS", "-Wl,-rpath,#{Formula["util-linux"].opt_lib}"
 
       system "./configure", *args
       system "make"
