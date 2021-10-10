@@ -22,8 +22,6 @@ class Racket < Formula
   depends_on "gmp"
   depends_on "harfbuzz"
   depends_on "jpeg"
-  depends_on "libedit"
-  depends_on "libffi"
   depends_on "libpng"
   depends_on "mpfr"
   depends_on "openssl@1.1"
@@ -31,6 +29,10 @@ class Racket < Formula
   depends_on "pixman"
   depends_on "poppler"
   depends_on "util-linux" # for libuuid
+
+  uses_from_macos "expat"
+  uses_from_macos "libedit"
+  uses_from_macos "libffi"
 
   conflicts_with "minimal-racket", because: "both install `racket` and `raco` binaries"
 
@@ -42,19 +44,24 @@ class Racket < Formula
     # see: https://docs.racket-lang.org/raco/config-file.html
     inreplace "etc/config.rktd", /\)\)\n$/, ") (default-scope . \"installation\"))\n"
 
-    # use libraries from Homebrew
+    # use libraries from macOS or Homebrew
     # https://github.com/racket/racket/issues/3279
-    inreplace "src/native-libs/install.rkt", "libpoppler.44", "libpoppler.144"
-    inreplace [
-      "src/native-libs/install.rkt",
-      "share/pkgs/math-lib/math/private/bigfloat/mpfr.rkt",
-    ], "libmpfr.4", "libmpfr.6"
+    inreplace "src/native-libs/install.rkt" do |s|
+      s.gsub! "libedit.0", "libedit.3" if OS.mac?
+      s.gsub! "libpoppler.44", "libpoppler"
+    end
     inreplace [
       "src/native-libs/install.rkt",
       "share/pkgs/draw-lib/racket/draw/unsafe/glib.rkt",
     ] do |s|
-      s.gsub! "libintl.9", "libintl.8"
-      s.gsub! "libffi.6", "libffi.7"
+      s.gsub! "libffi.6", "libffi"
+      s.gsub! "libintl.9", "libintl"
+    end
+    inreplace [
+      "src/native-libs/install.rkt",
+      "share/pkgs/math-lib/math/private/bigfloat/mpfr.rkt",
+    ] do |s|
+      s.gsub! "libmpfr.4", "libmpfr"
     end
 
     cd "src" do
@@ -69,10 +76,8 @@ class Racket < Formula
         --enable-useprefix
       ]
 
-      ENV.append "LDFLAGS", "-Wl,-rpath,#{Formula["libedit"].opt_lib}"
-      ENV.append "LDFLAGS", "-Wl,-rpath,#{Formula["libffi"].opt_lib}"
-      ENV.append "LDFLAGS", "-Wl,-rpath,#{Formula["openssl@1.1"].opt_lib}"
-      ENV.append "LDFLAGS", "-Wl,-rpath,#{Formula["util-linux"].opt_lib}"
+      ENV.prepend "LDFLAGS", "-Wl,-rpath,#{Formula["openssl@1.1"].opt_lib}"
+      ENV.prepend "LDFLAGS", "-Wl,-rpath,#{Formula["util-linux"].opt_lib}"
 
       system "./configure", *args
       system "make"
