@@ -75,7 +75,7 @@ class Racket < Formula
         --sysconfdir=#{etc}
         --enable-useprefix
       ]
-      
+
       ENV["LDFLAGS"] = %W[
         -Wl,-rpath,#{Formula["openssl@1.1"].opt_lib}
         -Wl,-rpath,#{Formula["util-linux"].opt_lib}
