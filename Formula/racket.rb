@@ -17,6 +17,7 @@ class Racket < Formula
   depends_on "freetype"
   depends_on "gettext"
   depends_on "glib"
+  depends_on "jpeg"
   depends_on "libffi"
   depends_on "libpng"
   depends_on "openssl@1.1"
