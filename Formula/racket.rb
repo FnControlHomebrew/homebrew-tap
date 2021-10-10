@@ -63,6 +63,9 @@ class Racket < Formula
     ] do |s|
       s.gsub! "libmpfr.4", "libmpfr"
     end
+    inreplace "share/pkgs/gui-lib/info.rkt",
+              '"gui-x86_64-macosx" #:platform "x86_64-macosx" #:version "1.3"',
+              '"gui-x86_64-macosx" #:platform "x86_64-macosx"'
 
     cd "src" do
       args = %W[
@@ -76,10 +79,7 @@ class Racket < Formula
         --enable-useprefix
       ]
 
-      ENV["LDFLAGS"] = %W[
-        -Wl,-rpath,#{Formula["openssl@1.1"].opt_lib}
-        -Wl,-rpath,#{Formula["util-linux"].opt_lib}
-      ].join " "
+      ENV["LDFLAGS"] = "-Wl,-rpath,#{Formula["openssl@1.1"].opt_lib} -Wl,-rpath,#{Formula["util-linux"].opt_lib}"
 
       system "./configure", *args
       system "make"
