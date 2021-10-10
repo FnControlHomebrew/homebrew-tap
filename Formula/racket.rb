@@ -12,17 +12,25 @@ class Racket < Formula
     regex(/["'][^"']*?racket[._-]v?(\d+(?:\.\d+)+)-src\.t/i)
   end
 
+  depends_on "atk"
   depends_on "cairo"
   depends_on "fontconfig"
   depends_on "freetype"
-  depends_on "gettext"
+  depends_on "fribidi"
+  depends_on "gettext" # for libintl
   depends_on "glib"
+  depends_on "gmp"
+  depends_on "harfbuzz"
   depends_on "jpeg"
+  depends_on "libedit"
   depends_on "libffi"
   depends_on "libpng"
+  depends_on "mpfr"
   depends_on "openssl@1.1"
+  depends_on "pango"
   depends_on "pixman"
-  depends_on "util-linux"
+  depends_on "poppler"
+  depends_on "util-linux" # for libuuid
 
   conflicts_with "minimal-racket", because: "both install `racket` and `raco` binaries"
 
@@ -36,9 +44,14 @@ class Racket < Formula
 
     # use libraries from Homebrew
     # https://github.com/racket/racket/issues/3279
+    inreplace "src/native-libs/install.rkt", "libpoppler.44", "libpoppler.144"
     inreplace [
-      "share/pkgs/draw-lib/racket/draw/unsafe/glib.rkt",
       "src/native-libs/install.rkt",
+      "share/pkgs/math-lib/math/private/bigfloat/mpfr.rkt",
+    ], "libmpfr.4", "libmpfr.6"
+    inreplace [
+      "src/native-libs/install.rkt",
+      "share/pkgs/draw-lib/racket/draw/unsafe/glib.rkt",
     ] do |s|
       s.gsub! "libintl.9", "libintl.8"
       s.gsub! "libffi.6", "libffi.7"
@@ -56,6 +69,7 @@ class Racket < Formula
         --enable-useprefix
       ]
 
+      ENV.append "LDFLAGS", "-Wl,-rpath,#{Formula["libedit"].opt_lib}"
       ENV.append "LDFLAGS", "-Wl,-rpath,#{Formula["libffi"].opt_lib}"
       ENV.append "LDFLAGS", "-Wl,-rpath,#{Formula["openssl@1.1"].opt_lib}"
       ENV.append "LDFLAGS", "-Wl,-rpath,#{Formula["util-linux"].opt_lib}"
