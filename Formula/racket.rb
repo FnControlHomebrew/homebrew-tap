@@ -12,6 +12,7 @@ class Racket < Formula
     regex(/["'][^"']*?racket[._-]v?(\d+(?:\.\d+)+)-src\.t/i)
   end
 
+  depends_on "cairo"
   depends_on "fontconfig"
   depends_on "freetype"
   depends_on "gettext"
