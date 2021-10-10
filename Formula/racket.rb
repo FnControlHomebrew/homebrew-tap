@@ -19,6 +19,7 @@ class Racket < Formula
   depends_on "libffi"
   depends_on "libpng"
   depends_on "openssl@1.1"
+  depends_on "pixman"
   depends_on "util-linux"
 
   conflicts_with "minimal-racket", because: "both install `racket` and `raco` binaries"
