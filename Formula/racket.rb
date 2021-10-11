@@ -1,8 +1,9 @@
 class Racket < Formula
   desc "Modern programming language in the Lisp/Scheme family"
   homepage "https://racket-lang.org/"
-  url "https://mirror.racket-lang.org/installers/8.2/racket-8.2-src.tgz"
-  sha256 "a0f3cf72938e7ae0f4f3eab70360812a2ec4e40efe327f1b449feb447b4f7482"
+  url "https://github.com/racket/racket/archive/refs/tags/v8.2.tar.gz"
+  # url "https://mirror.racket-lang.org/installers/8.2/racket-8.2-src.tgz"
+  sha256 "bf810473f4f730cf51781513855c810f9b7de42c443c51c5113b3b57f6479a4e"
   license any_of: ["MIT", "Apache-2.0"]
 
   # File links on the download page are created using JavaScript, so we parse
@@ -40,6 +41,11 @@ class Racket < Formula
   skip_clean "lib/racket/launchers.rktd", "lib/racket/mans.rktd"
 
   def install
+    system "make", "unix-style", "PREFIX=#{prefix}"
+
+    foo = true
+    return if foo
+
     # configure racket's package tool (raco) to do the Right Thing
     # see: https://docs.racket-lang.org/raco/config-file.html
     inreplace "etc/config.rktd", /\)\)\n$/, ") (default-scope . \"installation\"))\n"
