@@ -1,8 +1,8 @@
 class Racket < Formula
   desc "Modern programming language in the Lisp/Scheme family"
   homepage "https://racket-lang.org/"
-  url "https://github.com/racket/racket/archive/refs/tags/v8.2.tar.gz"
-  # url "https://mirror.racket-lang.org/installers/8.2/racket-8.2-src.tgz"
+  # url "https://github.com/racket/racket/archive/refs/tags/v8.2.tar.gz"
+  url "https://mirror.racket-lang.org/installers/8.2/racket-8.2-src.tgz"
   sha256 "bf810473f4f730cf51781513855c810f9b7de42c443c51c5113b3b57f6479a4e"
   license any_of: ["MIT", "Apache-2.0"]
 
@@ -41,10 +41,18 @@ class Racket < Formula
   skip_clean "lib/racket/launchers.rktd", "lib/racket/mans.rktd"
 
   def install
-    system "make", "unix-style", "PREFIX=#{prefix}"
-
-    foo = true
-    return if foo
+    foo = false
+    if foo
+      inreplace "racket/src/native-libs/install.rkt" do |s|
+        s.gsub! "libedit.0", "libedit.3" if OS.mac?
+        s.gsub! "libffi.6", "libffi"
+        s.gsub! "libintl.9", "libintl"
+        s.gsub! "libmpfr.4", "libmpfr"
+        s.gsub! "libpoppler.44", "libpoppler"
+      end
+      system "make", "unix-style", "PREFIX=#{prefix}"
+      return
+    end
 
     # configure racket's package tool (raco) to do the Right Thing
     # see: https://docs.racket-lang.org/raco/config-file.html
@@ -70,8 +78,17 @@ class Racket < Formula
       s.gsub! "libmpfr.4", "libmpfr"
     end
     inreplace "share/pkgs/gui-lib/info.rkt",
-              '"gui-x86_64-macosx" #:platform "x86_64-macosx" #:version "1.3"',
-              '"gui-x86_64-macosx" #:platform "x86_64-macosx"'
+              '("gui-x86_64-macosx" #:platform "x86_64-macosx" #:version "1.3")',
+              ""
+    inreplace "share/pkgs/draw-lib/info.rkt",
+              '("draw-x86_64-macosx-3" #:platform "x86_64-macosx")',
+              ""
+    inreplace "share/pkgs/math-lib/info.rkt",
+              '("math-x86_64-macosx" #:platform "x86_64-macosx")',
+              ""
+    inreplace "share/pkgs/racket-lib/info.rkt",
+              '("racket-x86_64-macosx-3" #:platform "x86_64-macosx")',
+              ""
 
     cd "src" do
       args = %W[
