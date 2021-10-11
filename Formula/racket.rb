@@ -12,34 +12,44 @@ class Racket < Formula
     regex(/["'][^"']*?racket[._-]v?(\d+(?:\.\d+)+)-src\.t/i)
   end
 
-  depends_on "atk"
-  depends_on "cairo"
-  depends_on "fontconfig"
-  depends_on "freetype"
-  depends_on "fribidi"
-  depends_on "glib"
-  depends_on "gmp"
-  depends_on "harfbuzz"
-  depends_on "jpeg"
-  depends_on "libpng"
-  depends_on "mpfr"
-  depends_on "openssl@1.1"
-  depends_on "pango"
-  depends_on "pixman"
-  depends_on "poppler"
-  depends_on "util-linux" # for libuuid
+  def self.skip_install?
+    # Need Qt 6.2.0 (!)
+    # https://github.com/orgs/Linuxbrew/packages/container/package/core%2Fqt
+    OS.linux?
+  end
 
-  uses_from_macos "expat"
-  uses_from_macos "libffi"
-  uses_from_macos "sqlite"
-  uses_from_macos "zlib"
+  depends_on "atk" unless skip_install?
+  depends_on "cairo" unless skip_install?
+  depends_on "fontconfig" unless skip_install?
+  depends_on "freetype" unless skip_install?
+  depends_on "fribidi" unless skip_install?
+  depends_on "glib" unless skip_install?
+  depends_on "gmp" unless skip_install?
+  depends_on "harfbuzz" unless skip_install?
+  depends_on "jpeg" unless skip_install?
+  depends_on "libpng" unless skip_install?
+  depends_on "mpfr" unless skip_install?
+  depends_on "openssl@1.1" unless skip_install?
+  depends_on "pango" unless skip_install?
+  depends_on "pixman" unless skip_install?
+  depends_on "poppler" unless skip_install?
+  depends_on "util-linux" unless skip_install? # for libuuid
+
+  uses_from_macos "expat" unless skip_install?
+  uses_from_macos "libffi" unless skip_install?
+  uses_from_macos "sqlite" unless skip_install?
+  uses_from_macos "zlib" unless skip_install?
 
   on_macos do
+    next if skip_install?
+
     depends_on "gettext" # for libintl
     depends_on "mmtabbarview"
   end
 
   on_linux do
+    next if skip_install?
+
     depends_on "gdk-pixbuf"
     depends_on "gtk+"
     depends_on "libx11"
@@ -54,7 +64,16 @@ class Racket < Formula
   # these two files are amended when (un)installing packages
   skip_clean "lib/racket/launchers.rktd", "lib/racket/mans.rktd"
 
+  def skip_install?
+    self.class.skip_install?
+  end
+
   def install
+    if skip_install?
+      touch prefix/"foo"
+      return
+    end
+
     # configure racket's package tool (raco) to do the Right Thing
     # see: https://docs.racket-lang.org/raco/config-file.html
     inreplace "etc/config.rktd", /\)\)\n$/, ") (default-scope . \"installation\"))\n"
@@ -81,18 +100,15 @@ class Racket < Formula
     ] do |s|
       s.gsub! "libmpfr.4", "libmpfr"
     end
-    inreplace "share/pkgs/gui-lib/info.rkt",
-              '("gui-x86_64-macosx" #:platform "x86_64-macosx" #:version "1.3")',
-              ""
-    inreplace "share/pkgs/draw-lib/info.rkt",
-              '("draw-x86_64-macosx-3" #:platform "x86_64-macosx")',
-              ""
-    inreplace "share/pkgs/math-lib/info.rkt",
-              '("math-x86_64-macosx" #:platform "x86_64-macosx")',
-              ""
-    inreplace "share/pkgs/racket-lib/info.rkt",
-              '("racket-x86_64-macosx-3" #:platform "x86_64-macosx")',
-              ""
+    inreplace "src/lt/configure" do |s|
+      s.gsub! " -bundle ", " "
+      s.gsub! "${wl}-flat_namespace ${wl}-undefined ${wl}suppress", ""
+    end
+    inreplace "share/pkgs/dynext-lib/dynext/link-unit.rkt", '"-bundle" "-flat_namespace" "-undefined" "suppress"', ""
+    inreplace "share/pkgs/gui-lib/info.rkt", '("gui-x86_64-macosx" #:platform "x86_64-macosx" #:version "1.3")', ""
+    inreplace "share/pkgs/draw-lib/info.rkt", '("draw-x86_64-macosx-3" #:platform "x86_64-macosx")', ""
+    inreplace "share/pkgs/math-lib/info.rkt", '("math-x86_64-macosx" #:platform "x86_64-macosx")', ""
+    inreplace "share/pkgs/racket-lib/info.rkt", '("racket-x86_64-macosx-3" #:platform "x86_64-macosx")', ""
 
     cd "src" do
       args = %W[
@@ -117,6 +133,8 @@ class Racket < Formula
   end
 
   test do
+    return if skip_install?
+
     output = shell_output("#{bin}/racket -e '(displayln \"Hello Homebrew\")'")
     assert_match "Hello Homebrew", output
 
@@ -141,10 +159,7 @@ class Racket < Formula
     end
     on_linux do
       output = shell_output("LD_DEBUG=libs #{bin}/racket -e '(require openssl)' 2>&1")
-      homebrew_pattern = Regexp.escape(HOMEBREW_PREFIX/"lib")
-      openssl_pattern = Regexp.escape(Formula["openssl@1.1"].opt_lib)
-      library_pattern = Regexp.escape(shared_library("libssl"))
-      assert_match %r{init: (#{homebrew_pattern}|#{openssl_pattern})/#{library_pattern}}, output
+      assert_match "init: #{HOMEBREW_PREFIX}/lib/#{shared_library("libssl")}", output
     end
   end
 end
