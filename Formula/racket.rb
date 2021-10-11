@@ -12,43 +12,41 @@ class Racket < Formula
     regex(/["'][^"']*?racket[._-]v?(\d+(?:\.\d+)+)-src\.t/i)
   end
 
-  if OS.mac?
-    depends_on "atk"
-    depends_on "cairo"
-    depends_on "fontconfig"
-    depends_on "freetype"
-    depends_on "fribidi"
-    depends_on "glib"
-    depends_on "gmp"
-    depends_on "harfbuzz"
-    depends_on "jpeg"
-    depends_on "libpng"
-    depends_on "mpfr"
-    depends_on "openssl@1.1"
-    depends_on "pango"
-    depends_on "pixman"
-    depends_on "poppler"
-    depends_on "util-linux" # for libuuid
+  depends_on "atk"
+  depends_on "cairo"
+  depends_on "fontconfig"
+  depends_on "freetype"
+  depends_on "fribidi"
+  depends_on "glib"
+  depends_on "gmp"
+  depends_on "harfbuzz"
+  depends_on "jpeg"
+  depends_on "libpng"
+  depends_on "mpfr"
+  depends_on "openssl@1.1"
+  depends_on "pango"
+  depends_on "pixman"
+  depends_on "poppler"
+  depends_on "util-linux" # for libuuid
 
-    uses_from_macos "expat"
-    uses_from_macos "libffi"
-    uses_from_macos "sqlite"
-    uses_from_macos "zlib"
+  uses_from_macos "expat"
+  uses_from_macos "libffi"
+  uses_from_macos "sqlite"
+  uses_from_macos "zlib"
 
-    on_macos do
-      depends_on "gettext" # for libintl
-      depends_on "mmtabbarview"
-    end
+  on_macos do
+    depends_on "gettext" # for libintl
+    depends_on "mmtabbarview"
+  end
 
-    on_linux do
-      depends_on "gdk-pixbuf"
-      depends_on "gtk+"
-      depends_on "libx11"
-      depends_on "libxau"
-      depends_on "libxcb"
-      depends_on "libxext"
-      depends_on "libxrender"
-    end
+  on_linux do
+    depends_on "gdk-pixbuf"
+    depends_on "gtk+"
+    depends_on "libx11"
+    depends_on "libxau"
+    depends_on "libxcb"
+    depends_on "libxext"
+    depends_on "libxrender"
   end
 
   conflicts_with "minimal-racket", because: "both install `racket` and `raco` binaries"
@@ -57,18 +55,44 @@ class Racket < Formula
   skip_clean "lib/racket/launchers.rktd", "lib/racket/mans.rktd"
 
   def install
-    touch prefix/"foo"
-    return if OS.mac?
-
     # configure racket's package tool (raco) to do the Right Thing
     # see: https://docs.racket-lang.org/raco/config-file.html
     inreplace "etc/config.rktd", /\)\)\n$/, ") (default-scope . \"installation\"))\n"
 
+    # install macOS apps in libexec
+    inreplace "etc/config.rktd", /\)\)\n$/, ") (gui-bin-dir . \"#{libexec}\"))\n"
+
+    # use libraries from macOS or Homebrew
     # https://github.com/racket/racket/issues/3279
+    inreplace "src/native-libs/install.rkt" do |s|
+      s.gsub! "libedit.0", "libedit.3" if OS.mac?
+      s.gsub! "libpoppler.44", "libpoppler"
+    end
     inreplace [
-      "share/pkgs/draw-lib/racket/draw/unsafe/glib.rkt",
       "src/native-libs/install.rkt",
-    ], "libintl.9", "libintl.8"
+      "share/pkgs/draw-lib/racket/draw/unsafe/glib.rkt",
+    ] do |s|
+      s.gsub! "libffi.6", "libffi"
+      s.gsub! "libintl.9", "libintl"
+    end
+    inreplace [
+      "src/native-libs/install.rkt",
+      "share/pkgs/math-lib/math/private/bigfloat/mpfr.rkt",
+    ] do |s|
+      s.gsub! "libmpfr.4", "libmpfr"
+    end
+    inreplace "share/pkgs/gui-lib/info.rkt",
+              '("gui-x86_64-macosx" #:platform "x86_64-macosx" #:version "1.3")',
+              ""
+    inreplace "share/pkgs/draw-lib/info.rkt",
+              '("draw-x86_64-macosx-3" #:platform "x86_64-macosx")',
+              ""
+    inreplace "share/pkgs/math-lib/info.rkt",
+              '("math-x86_64-macosx" #:platform "x86_64-macosx")',
+              ""
+    inreplace "share/pkgs/racket-lib/info.rkt",
+              '("racket-x86_64-macosx-3" #:platform "x86_64-macosx")',
+              ""
 
     cd "src" do
       args = %W[
@@ -82,21 +106,17 @@ class Racket < Formula
         --enable-useprefix
       ]
 
-      ENV["LDFLAGS"] = %W[
-        -rpath #{Formula["openssl@1.1"].opt_lib}
-        -rpath #{Formula["util-linux"].opt_lib}
-      ].join " "
-      ENV["LDFLAGS"] = "-Wl,-rpath=#{Formula["openssl@1.1"].opt_lib}" if OS.linux?
+      ENV["LDFLAGS"] = "-Wl,-rpath,#{Formula["openssl@1.1"].opt_lib} -Wl,-rpath,#{Formula["util-linux"].opt_lib}"
 
       system "./configure", *args
       system "make"
       system "make", "install"
     end
+
+    bin.install Dir["#{libexec}/*"].select { |f| File.executable? f }
   end
 
   test do
-    return if OS.mac?
-
     output = shell_output("#{bin}/racket -e '(displayln \"Hello Homebrew\")'")
     assert_match "Hello Homebrew", output
 
@@ -121,7 +141,10 @@ class Racket < Formula
     end
     on_linux do
       output = shell_output("LD_DEBUG=libs #{bin}/racket -e '(require openssl)' 2>&1")
-      assert_match "init: #{Formula["openssl@1.1"].opt_lib}/#{shared_library("libssl")}", output
+      homebrew_pattern = Regexp.escape(HOMEBREW_PREFIX/"lib")
+      openssl_pattern = Regexp.escape(Formula["openssl@1.1"].opt_lib)
+      library_pattern = Regexp.escape(shared_library("libssl"))
+      assert_match %r{init: (#{homebrew_pattern}|#{openssl_pattern})/#{library_pattern}}, output
     end
   end
 end
