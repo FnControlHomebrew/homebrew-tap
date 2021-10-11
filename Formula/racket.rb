@@ -109,6 +109,8 @@ class Racket < Formula
       system "make"
       system "make", "install"
     end
+
+    prefix.install Dir["#{bin}/*.app"]
   end
 
   test do
