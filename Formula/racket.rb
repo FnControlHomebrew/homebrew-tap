@@ -13,9 +13,7 @@ class Racket < Formula
   end
 
   def self.skip_install?
-    # Need Qt 6.2.0 (!)
-    # https://github.com/orgs/Linuxbrew/packages/container/package/core%2Fqt
-    OS.linux?
+    false
   end
 
   depends_on "atk" unless skip_install?
@@ -76,10 +74,12 @@ class Racket < Formula
 
     # configure racket's package tool (raco) to do the Right Thing
     # see: https://docs.racket-lang.org/raco/config-file.html
-    inreplace "etc/config.rktd", /\)\)\n$/, ") (default-scope . \"installation\"))\n"
+    inreplace "etc/config.rktd", /(?<=\))(?=\)\n$)/, <<~EOS
 
-    # install macOS apps in libexec
-    inreplace "etc/config.rktd", /\)\)\n$/, ") (gui-bin-dir . \"#{libexec}\"))\n"
+      (default-scope . "installation")
+      (gui-bin-dir . "#{libexec}")
+      (collects-search-dirs . ("#{share}/racket/pkgs" #f))
+    EOS
 
     # use libraries from macOS or Homebrew
     # https://github.com/racket/racket/issues/3279
@@ -100,15 +100,23 @@ class Racket < Formula
     ] do |s|
       s.gsub! "libmpfr.4", "libmpfr"
     end
-    inreplace "src/lt/configure" do |s|
-      s.gsub! " -bundle ", " "
-      s.gsub! "${wl}-flat_namespace ${wl}-undefined ${wl}suppress", ""
+    if OS.mac?
+      # inreplace "src/lt/configure" do |s|
+      #   s.gsub! " -bundle ", " "
+      #   s.gsub! "${wl}-flat_namespace ${wl}-undefined ${wl}suppress", ""
+      # end
+      # inreplace "share/pkgs/dynext-lib/dynext/link-unit.rkt",
+      #   '"-bundle" "-flat_namespace" "-undefined" "suppress"', ""
+      inreplace "share/pkgs/gui-lib/mred/private/wx/cocoa/tab-panel.rkt" do |s|
+        s.gsub! "(directory-exists? mm-tab-bar-dir)", ""
+        s.gsub! '(build-path mm-tab-bar-dir "MMTabBarView")',
+                "\"#{Formula["mmtabbarview"].opt_frameworks}/MMTabBarView.framework/MMTabBarView\""
+      end
+      inreplace "share/pkgs/gui-lib/info.rkt", '("gui-x86_64-macosx" #:platform "x86_64-macosx" #:version "1.3")', ""
+      inreplace "share/pkgs/draw-lib/info.rkt", '("draw-x86_64-macosx-3" #:platform "x86_64-macosx")', ""
+      inreplace "share/pkgs/math-lib/info.rkt", '("math-x86_64-macosx" #:platform "x86_64-macosx")', ""
+      inreplace "share/pkgs/racket-lib/info.rkt", '("racket-x86_64-macosx-3" #:platform "x86_64-macosx")', ""
     end
-    inreplace "share/pkgs/dynext-lib/dynext/link-unit.rkt", '"-bundle" "-flat_namespace" "-undefined" "suppress"', ""
-    inreplace "share/pkgs/gui-lib/info.rkt", '("gui-x86_64-macosx" #:platform "x86_64-macosx" #:version "1.3")', ""
-    inreplace "share/pkgs/draw-lib/info.rkt", '("draw-x86_64-macosx-3" #:platform "x86_64-macosx")', ""
-    inreplace "share/pkgs/math-lib/info.rkt", '("math-x86_64-macosx" #:platform "x86_64-macosx")', ""
-    inreplace "share/pkgs/racket-lib/info.rkt", '("racket-x86_64-macosx-3" #:platform "x86_64-macosx")', ""
 
     cd "src" do
       args = %W[
@@ -129,7 +137,7 @@ class Racket < Formula
       system "make", "install"
     end
 
-    bin.install Dir["#{libexec}/*"].select { |f| File.executable? f }
+    bin.install Dir["#{libexec}/*"].select { |f| File.file?(f) && File.executable?(f) }
   end
 
   test do
