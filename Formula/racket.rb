@@ -30,11 +30,23 @@ class Racket < Formula
   depends_on "util-linux" # for libuuid
 
   uses_from_macos "expat"
-  uses_from_macos "libedit"
   uses_from_macos "libffi"
+  uses_from_macos "sqlite"
+  uses_from_macos "zlib"
 
   on_macos do
     depends_on "gettext" # for libintl
+    depends_on "mmtabbarview"
+  end
+
+  on_linux do
+    depends_on "gdk-pixbuf"
+    depends_on "gtk+"
+    depends_on "libx11"
+    depends_on "libxau"
+    depends_on "libxcb"
+    depends_on "libxext"
+    depends_on "libxrender"
   end
 
   conflicts_with "minimal-racket", because: "both install `racket` and `raco` binaries"
