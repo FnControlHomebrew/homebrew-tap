@@ -12,16 +12,30 @@ class Racket < Formula
     regex(/["'][^"']*?racket[._-]v?(\d+(?:\.\d+)+)-src\.t/i)
   end
 
+  depends_on "atk"
   depends_on "cairo"
   depends_on "fontconfig"
   depends_on "freetype"
-  depends_on "gettext"
+  depends_on "fribidi"
   depends_on "glib"
-  depends_on "libffi"
+  depends_on "gmp"
+  depends_on "harfbuzz"
+  depends_on "jpeg"
   depends_on "libpng"
+  depends_on "mpfr"
   depends_on "openssl@1.1"
+  depends_on "pango"
   depends_on "pixman"
-  depends_on "util-linux"
+  depends_on "poppler"
+  depends_on "util-linux" # for libuuid
+
+  uses_from_macos "expat"
+  uses_from_macos "libedit"
+  uses_from_macos "libffi"
+
+  on_macos do
+    depends_on "gettext" # for libintl
+  end
 
   conflicts_with "minimal-racket", because: "both install `racket` and `raco` binaries"
 
