@@ -12,41 +12,43 @@ class Racket < Formula
     regex(/["'][^"']*?racket[._-]v?(\d+(?:\.\d+)+)-src\.t/i)
   end
 
-  depends_on "atk"
-  depends_on "cairo"
-  depends_on "fontconfig"
-  depends_on "freetype"
-  depends_on "fribidi"
-  depends_on "glib"
-  depends_on "gmp"
-  depends_on "harfbuzz"
-  depends_on "jpeg"
-  depends_on "libpng"
-  depends_on "mpfr"
-  depends_on "openssl@1.1"
-  depends_on "pango"
-  depends_on "pixman"
-  depends_on "poppler"
-  depends_on "util-linux" # for libuuid
+  if OS.mac?
+    depends_on "atk"
+    depends_on "cairo"
+    depends_on "fontconfig"
+    depends_on "freetype"
+    depends_on "fribidi"
+    depends_on "glib"
+    depends_on "gmp"
+    depends_on "harfbuzz"
+    depends_on "jpeg"
+    depends_on "libpng"
+    depends_on "mpfr"
+    depends_on "openssl@1.1"
+    depends_on "pango"
+    depends_on "pixman"
+    depends_on "poppler"
+    depends_on "util-linux" # for libuuid
 
-  uses_from_macos "expat"
-  uses_from_macos "libffi"
-  uses_from_macos "sqlite"
-  uses_from_macos "zlib"
+    uses_from_macos "expat"
+    uses_from_macos "libffi"
+    uses_from_macos "sqlite"
+    uses_from_macos "zlib"
 
-  on_macos do
-    depends_on "gettext" # for libintl
-    depends_on "mmtabbarview"
-  end
+    on_macos do
+      depends_on "gettext" # for libintl
+      depends_on "mmtabbarview"
+    end
 
-  on_linux do
-    depends_on "gdk-pixbuf"
-    depends_on "gtk+"
-    depends_on "libx11"
-    depends_on "libxau"
-    depends_on "libxcb"
-    depends_on "libxext"
-    depends_on "libxrender"
+    on_linux do
+      depends_on "gdk-pixbuf"
+      depends_on "gtk+"
+      depends_on "libx11"
+      depends_on "libxau"
+      depends_on "libxcb"
+      depends_on "libxext"
+      depends_on "libxrender"
+    end
   end
 
   conflicts_with "minimal-racket", because: "both install `racket` and `raco` binaries"
