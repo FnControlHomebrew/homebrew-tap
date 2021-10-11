@@ -29,7 +29,7 @@ class Racket < Formula
   skip_clean "lib/racket/launchers.rktd", "lib/racket/mans.rktd"
 
   def install
-    system "touch", prefix/"foo"
+    touch prefix/"foo"
     return if OS.mac?
 
     # configure racket's package tool (raco) to do the Right Thing
