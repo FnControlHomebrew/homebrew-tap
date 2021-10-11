@@ -59,6 +59,9 @@ class Racket < Formula
     # see: https://docs.racket-lang.org/raco/config-file.html
     inreplace "etc/config.rktd", /\)\)\n$/, ") (default-scope . \"installation\"))\n"
 
+    # install macOS apps in libexec
+    inreplace "etc/config.rktd", /\)\)\n$/, ") (gui-bin-dir . \"#{libexec}\"))\n"
+
     # use libraries from macOS or Homebrew
     # https://github.com/racket/racket/issues/3279
     inreplace "src/native-libs/install.rkt" do |s|
@@ -104,19 +107,17 @@ class Racket < Formula
       ]
 
       ENV["LDFLAGS"] = "-Wl,-rpath,#{Formula["openssl@1.1"].opt_lib} -Wl,-rpath,#{Formula["util-linux"].opt_lib}"
+      ENV["LDFLAGS"] = "-Wl,-rpath=#{Formula["openssl@1.1"].opt_lib}" if OS.linux?
 
       system "./configure", *args
       system "make"
       system "make", "install"
     end
 
-    prefix.install Dir["#{bin}/*.app"]
+    bin.install Dir["#{libexec}/*"].select { |f| File.executable? f }
   end
 
   test do
-    foo = true
-    next if foo
-
     output = shell_output("#{bin}/racket -e '(displayln \"Hello Homebrew\")'")
     assert_match "Hello Homebrew", output
 
@@ -140,6 +141,9 @@ class Racket < Formula
       assert_match(%r{loaded: .*openssl@1\.1/.*/libssl.*\.dylib}, output)
     end
     on_linux do
+      # foo = true
+      # next if foo
+
       output = shell_output("LD_DEBUG=libs #{bin}/racket -e '(require openssl)' 2>&1")
       assert_match "init: #{Formula["openssl@1.1"].opt_lib}/#{shared_library("libssl")}", output
     end
