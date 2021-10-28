@@ -12,6 +12,13 @@ class Racket < Formula
     regex(/["'][^"']*?racket[._-]v?(\d+(?:\.\d+)+)-src\.t/i)
   end
 
+  bottle do
+    root_url "https://github.com/FnControlOption/homebrew-tap/releases/download/racket-8.2"
+    sha256 big_sur:      "3720558638ba18da923930d50fb29e48ac741f5324261a10f354414823ad17be"
+    sha256 catalina:     "f9142370787d9d8763770c767ae663e60c6e23f06022e126f0f9467e1fd0b082"
+    sha256 x86_64_linux: "44ab701b5c0176e364aef82ca04a856d80035384e2bc1775799fee7fd6fd7e72"
+  end
+
   depends_on "atk"
   depends_on "cairo"
   depends_on "fontconfig"
