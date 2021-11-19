@@ -7,6 +7,8 @@ class Foobar < Formula
   sha256 "246c4839624d0b97338ce976100d56bd9331d9416e178eb0f74ef050c1dbdaad"
   license "BSD-2-Clause"
 
+  depends_on :linux
+
   def install
     system "make", "install", "PREFIX=#{prefix}"
   end
